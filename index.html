@@ -982,9 +982,9 @@
       registration: [[-.0008,-.0006],[.0006,-.0008],[.001,.0001],[.0005,.0007],[-.0007,.0007],[-.001,-.0001]]
     };
     const kindergartenProjects = [
-      { id: 'KG2023001', name: '彩虹幼儿园建设项目', district: '南京市浦口区', currentStage: 'construction', area: '0.68 公顷', lon: 118.62, lat: 32.04, dates: ['2023-03-18','2023-06-22','2023-09-15','2023-12-08','2024-04-19','2025-08-30','2025-11-20'] },
-      { id: 'KG2023002', name: '滨河幼儿园建设项目', district: '南京市建邺区', currentStage: 'acceptance', area: '0.52 公顷', lon: 118.72, lat: 32.00, dates: ['2022-11-10','2023-02-16','2023-05-09','2023-08-21','2023-12-15','2025-06-28','2025-10-16'] },
-      { id: 'KG2023003', name: '龙江幼儿园改扩建项目', district: '南京市鼓楼区', currentStage: 'registration', area: '0.47 公顷', lon: 118.74, lat: 32.06, dates: ['2021-09-12','2022-01-20','2022-04-18','2022-07-06','2022-11-25','2024-05-16','2024-08-28'] }
+      { id: 'KG2023001', name: '彩虹幼儿园建设项目', district: '南京市浦口区', currentStage: 'construction', supplyMethod: '出让', area: '0.68 公顷', lon: 118.62, lat: 32.04, dates: ['2023-03-18','2023-06-22','2023-09-15','2023-12-08','2024-04-19','2025-08-30','2025-11-20'] },
+      { id: 'KG2023002', name: '滨河幼儿园建设项目', district: '南京市建邺区', currentStage: 'acceptance', supplyMethod: '划拨', area: '0.52 公顷', lon: 118.72, lat: 32.00, dates: ['2022-11-10','2023-02-16','2023-05-09','2023-08-21','2023-12-15','2025-06-28','2025-10-16'] },
+      { id: 'KG2023003', name: '龙江幼儿园改扩建项目', district: '南京市鼓楼区', currentStage: 'registration', supplyMethod: '划拨', area: '0.47 公顷', lon: 118.74, lat: 32.06, dates: ['2021-09-12','2022-01-20','2022-04-18','2022-07-06','2022-11-25','2024-05-16','2024-08-28'] }
     ];
     const SVG_NS = 'http://www.w3.org/2000/svg';
     function clearSpatialSelection() {
@@ -1395,7 +1395,10 @@
         });
         links.push({ source: 'project-core', target: `stage-${stage.id}` });
         if (stageIndex < lifecycleStages.length - 1) links.push({ source: `stage-${stage.id}`, target: `stage-${lifecycleStages[stageIndex + 1].id}` });
-        const related = [...lifecycleDocuments[stage.id], stage.agency];
+        const documents = stage.id === 'supply' && activeProject.supplyMethod === '出让'
+          ? ['出让合同', '供地批复', '用地界址图']
+          : lifecycleDocuments[stage.id];
+        const related = [...documents, stage.agency];
         related.forEach((name, index) => {
           const id = `related-${stage.id}-${index}`;
           nodes.push({
@@ -1563,8 +1566,10 @@
       const stage = getStage(selectedStageId);
       const record = getStageRecord(activeProject, selectedStageId);
       const detail = $('#stageDetail');
+      const detailTag = selectedStageId === 'supply' ? activeProject.supplyMethod : stage.name;
+      const relation = selectedStageId === 'supply' ? `国有建设用地${activeProject.supplyMethod}供应` : stage.relation;
       detail.style.setProperty('--stage-color', stage.color);
-      detail.innerHTML = `<span class="stage-detail-tag">${stage.name}</span><h3>${activeProject.name}</h3><span class="stage-detail-status">${record.status} · ${record.date}</span><dl><dt>生命周期关系</dt><dd>${stage.relation}</dd><dt>办理机构</dt><dd>${stage.agency}</dd><dt>项目用地</dt><dd>${activeProject.area}</dd><dt>项目编号</dt><dd>${activeProject.id}</dd></dl><button class="stage-focus-button" id="focusStageButton">定位该阶段图斑</button>`;
+      detail.innerHTML = `<span class="stage-detail-tag">${detailTag}</span><h3>${activeProject.name}</h3><span class="stage-detail-status">${record.status} · ${record.date}</span><dl><dt>生命周期关系</dt><dd>${relation}</dd><dt>办理机构</dt><dd>${stage.agency}</dd><dt>项目用地</dt><dd>${activeProject.area}</dd><dt>项目编号</dt><dd>${activeProject.id}</dd></dl><button class="stage-focus-button" id="focusStageButton">定位该阶段图斑</button>`;
       $('#focusStageButton').addEventListener('click', () => focusSelectedParcel());
     }
     function focusSelectedParcel() {
